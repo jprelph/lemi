@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	"k8s.io/client-go/util/retry"
+)
 
 func main() {
 	var kubeconfig *string
@@ -23,7 +24,13 @@ func main() {
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
+	podName = flag.String("pod", "", "The name of the target pod")
 	flag.Parse()
+
+	if *path == "" {
+		usage()
+		os.Exit(2)
+	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
@@ -34,7 +41,7 @@ func main() {
 		panic(err)
 	}
 
-        ephemeralContainerClient := clientset.ApiV1().EphemeralContainer(apiv1.NamespaceDefault)
+        podClient := clientset.CoreV1().Pods(pod.Namespace)
 
 	ephemeralContainer := &apiv1.EphemeralContainer{
 		ObjectMeta: metav1.ObjectMeta{
@@ -57,9 +64,9 @@ func main() {
 		]
 	}
 
-	// Create Deployment
+	// Inject ephemeral container
 	fmt.Println("Creating ephemeral container...")
-	result, err := ephemeralContainerClient.Create(context.TODO(), ephemeralContainer, metav1.CreateOptions{})
+	result, err := podClient.UpdateEphemeralContainers(context.TODO(), podName, ephemeralContainer, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
 	}
