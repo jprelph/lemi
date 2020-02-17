@@ -47,13 +47,13 @@ func main() {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "let-me-in",
 		},
-		"ephemeralContainers":[
+		"ephemeralContainers":[]string{
 			{
 				"name":"debugger",
 				"image":"busybox",
-				"command":[
-					"sh"
-				],
+				"command":[]string{
+					"sh",
+				},
 				"resources":{
          			},
 				"terminationMessagePolicy":"File",
@@ -61,7 +61,7 @@ func main() {
 				"stdin":true,
 				"tty":true
 			}
-		]
+		}
 	}
 
 	// Inject ephemeral container
