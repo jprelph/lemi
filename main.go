@@ -1,20 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"k8s.io/client-go/util/retry"
 )
 
 func main() {
@@ -24,11 +21,15 @@ func main() {
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
-	podName = flag.String("pod", "", "The name of the target pod")
+	var podname *string = flag.String("pod", "", "The name of the target pod")
+	var namespace *string = flag.String("namespace", "", "The name of the target namespace")
 	flag.Parse()
 
-	if *path == "" {
-		usage()
+	if *podname == "" {
+		os.Exit(2)
+	}
+
+	if *namespace == "" {
 		os.Exit(2)
 	}
 
@@ -41,32 +42,44 @@ func main() {
 		panic(err)
 	}
 
-        podClient := clientset.CoreV1().Pods(pod.Namespace)
-
-	ephemeralContainer := &apiv1.EphemeralContainer{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "let-me-in",
-		},
-		"ephemeralContainers":[]string{
-			{
-				"name":"debugger",
-				"image":"busybox",
-				"command":[]string{
-					"sh",
+        podClient := clientset.CoreV1().Pods(*namespace)
+ 
+	ec := &apiv1.EphemeralContainers{
+			ObjectMeta: v1.ObjectMeta{
+				Name:                       "example-ec",
+				Labels:                     {},
+				Annotations:                {},
+			},
+			EphemeralContainers: {
+				{
+					EphemeralContainerCommon: v1.EphemeralContainerCommon{
+						Name:                     "debugger",
+						Image:                    "busybox",
+						Command:                  {"sh"},
+						Args:                     nil,
+						WorkingDir:               "",
+						Ports:                    nil,
+						EnvFrom:                  nil,
+						Env:                      nil,
+						Resources:                v1.ResourceRequirements{},
+						VolumeMounts:             nil,
+						VolumeDevices:            nil,
+						TerminationMessagePath:   "",
+						TerminationMessagePolicy: "File",
+						ImagePullPolicy:          "IfNotPresent",
+						Stdin:                    true,
+						StdinOnce:                false,
+						TTY:                      true,
+					},
+					TargetContainerName: "*podname",
 				},
-				"resources":{
-         			},
-				"terminationMessagePolicy":"File",
-				"imagePullPolicy":"IfNotPresent",
-				"stdin":true,
-				"tty":true
-			}
+			},
 		}
 	}
 
 	// Inject ephemeral container
 	fmt.Println("Creating ephemeral container...")
-	result, err := podClient.UpdateEphemeralContainers(context.TODO(), podName, ephemeralContainer, metav1.CreateOptions{})
+	result, err := podClient.UpdateEphemeralContainers(context.TODO(), *podname, ec, metav1.UpdateOptions{})
 	if err != nil {
 		panic(err)
 	}
