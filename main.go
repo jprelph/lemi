@@ -45,36 +45,34 @@ func main() {
         podClient := clientset.CoreV1().Pods(*namespace)
  
 	ec := &apiv1.EphemeralContainers{
-			ObjectMeta: v1.ObjectMeta{
-				Name:                       "example-ec",
-				Labels:                     {},
-				Annotations:                {},
+		    ObjectMeta: metav1.ObjectMeta{
+			Name:                       "debugger",
+		    },
+		    EphemeralContainers: []apiv1.EphemeralContainer{
+			{
+			    EphemeralContainerCommon: apiv1.EphemeralContainerCommon{
+				Name:                     "debugger",
+				Image:                    "busybox",
+				Command:                  []string{
+								"sh",
+							},
+				Args:                     nil,
+				WorkingDir:               "",
+				Ports:                    nil,
+				EnvFrom:                  nil,
+				Env:                      nil,
+				VolumeMounts:             nil,
+				VolumeDevices:            nil,
+				TerminationMessagePath:   "",
+				TerminationMessagePolicy: "File",
+				ImagePullPolicy:          "IfNotPresent",
+				Stdin:                    true,
+				StdinOnce:                false,
+				TTY:                      true,
+			    },
+			    TargetContainerName: "*podname",
 			},
-			EphemeralContainers: {
-				{
-					EphemeralContainerCommon: v1.EphemeralContainerCommon{
-						Name:                     "debugger",
-						Image:                    "busybox",
-						Command:                  {"sh"},
-						Args:                     nil,
-						WorkingDir:               "",
-						Ports:                    nil,
-						EnvFrom:                  nil,
-						Env:                      nil,
-						Resources:                v1.ResourceRequirements{},
-						VolumeMounts:             nil,
-						VolumeDevices:            nil,
-						TerminationMessagePath:   "",
-						TerminationMessagePolicy: "File",
-						ImagePullPolicy:          "IfNotPresent",
-						Stdin:                    true,
-						StdinOnce:                false,
-						TTY:                      true,
-					},
-					TargetContainerName: "*podname",
-				},
-			},
-		}
+		    },
 	}
 
 	// Inject ephemeral container
