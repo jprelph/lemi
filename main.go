@@ -70,7 +70,7 @@ func main() {
 				StdinOnce:                false,
 				TTY:                      true,
 			    },
-			    TargetContainerName: "*podname",
+			    TargetContainerName: "",
 			},
 		    },
 	}
