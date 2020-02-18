@@ -81,6 +81,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName())
+	fmt.Printf("Started ephemeral container in pod *podname %q.\n", result.GetObjectMeta().GetName())
 
 }
